@@ -3,6 +3,7 @@ import Link from "next/link";
 import Header from "../components/Header";
 import fetch from 'isomorphic-unfetch'
 import redirect from "./redirect";
+import Cookies from 'js-cookie';
 
 export default class Home extends Component {
   constructor(props) {
@@ -14,20 +15,32 @@ export default class Home extends Component {
  // if da login thi giu nguyen home, nguoc lai chuyen sang login
   static getInitialProps(ctx) {
 	const authenticated=true;
+	//var email=Cookies.get('email');	
+	//console.log(email);
+	//if (email === undefined)  // da dang nhap, chuyen qua home
+	//	redirect("/login", ctx);  
 	
-	if (!authenticated)
-	  redirect("/login", ctx);   	
-	//else	
-    //  redirect("/home", ctx);   
+	
+	  
+	
 
     return {
      
     };
   }
+ componentDidMount(){
+	var email=Cookies.get('email');	
+	console.log(email);
+	if (email === undefined)  // da dang nhap, chuyen qua home
+		redirect("/login"); 
+	  
+ }
   handleClick(e) {
-	// chuyen qua trang login  
-	const authenticated=false;	
-	
+	// thu hien logout va chuyen qua trang login  
+	// xoa cookies
+	Cookies.remove('email');
+	//var email=Cookies.get('email');	
+	//alert(email);
     redirect("/login");   
 	  
   }

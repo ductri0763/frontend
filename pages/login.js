@@ -1,8 +1,12 @@
 import { Component } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
-import fetch from 'isomorphic-unfetch'
+//import fetcho from 'isomorphic-unfetch'
+import fetch from 'node-fetch'
 import redirect from "./redirect";
+import Cookies from 'js-cookie';
+//import { setCookie, getCookie, removeCookie } from "./session";
+
 
 export default class Login extends Component {
   constructor(props) {
@@ -14,18 +18,25 @@ export default class Login extends Component {
   // if da login thi chuyen sang home
   
    static getInitialProps(ctx) {
-	const authenticated=false;
-	
-	if (authenticated)
-	  redirect("/home", ctx);   	
-	 
+		
 
     return {
      
     };
   }
  
+ componentDidMount(){
+	var email=Cookies.get('email');	
+	console.log(email);
+	if (email === undefined)  // da dang nhap, chuyen qua home		
+		{
+		}
+	else
+ 		redirect("/home"); 
+	  
+ }
 
+  
   render() {
     const authenticated=false;
 	const pathname='/';
@@ -39,6 +50,7 @@ export default class Login extends Component {
           <input type="password" placeholder="password" name="password" />
           <button type="submit">Submit</button>
         </form>
+	
         </div>
        
     );
@@ -46,32 +58,44 @@ export default class Login extends Component {
 
   handleSubmit = async e => {
     e.preventDefault();
+	
+	
+		const email = e.target.elements.email.value;
+		const password = e.target.elements.password.value;	
+		
+		var url= "http://localhost:5000/api/users/" + email + "/" + password;	
+	
+		fetch(url, { 	 
+		  headers: { 'Content-Type': 'application/json' },
+		}).then(response => {
+		  return response.json().then(data => {
+		   if (response.ok) {
+			  
+			  if (data.length>0) 
+			  {
+				   var myJSON =JSON.stringify(data); //JavaScript object into a string with JSON.stringify()
+			
+				   var obj = JSON.parse(myJSON);			   
+			
+				   var email=obj[0].email;
+				   Cookies.set('email', email);
+				   var email=Cookies.get('email');			   
+		
+				   // chuyen qua trang home
+				   redirect("/home");  
+			  }
+			  else
+				alert("can not login!");  
+			  
+			 return data;
+		   } else {
+			   
+			 return Promise.reject({status: response.status, data});
+		   }
+		  });
+		});
 
-    const email = e.target.elements.email.value;
-    const password = e.target.elements.password.value;
-
-	 try {
-		
-		// thu truy van du lieu tu may chuyen
-		
-		const res = await fetch('http://localhost:5000/api/users/ptoandung@gmail.com/012381727');
-		const data = await res.json()
-		
-		// du lieu khong tra ve, block tu day
-		if (data.length>0)
-			 {
-			 console.log("login success");
-			 // thanh cong thi chuyen sang trang home
-			 redirect("/home");   
-			 }
-			 else
-			 console.log("login unsuccess");
-    
-	  } catch (error) {
-		return error.response && error.response.status === 404
-		  ? "Wrong email/password"
-		  : "Unknown error. Please try again";
-	  }
+	 
 	
 	
 	
