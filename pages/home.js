@@ -1,9 +1,7 @@
 import { Component } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
-import fetch from 'isomorphic-unfetch'
 import redirect from "./redirect";
-import Cookies from 'js-cookie';
 
 export default class Home extends Component {
   constructor(props) {
@@ -12,42 +10,32 @@ export default class Home extends Component {
       error: null
     };
   }
- // if da login thi giu nguyen home, nguoc lai chuyen sang login
+
   static getInitialProps(ctx) {
-	const authenticated=true;
-	//var email=Cookies.get('email');	
-	//console.log(email);
-	//if (email === undefined)  // da dang nhap, chuyen qua home
-	//	redirect("/login", ctx);  
-	
-	
-	  
-	
+	const authenticated=true;	
 
     return {
      
     };
   }
  componentDidMount(){
-	var email=Cookies.get('email');	
-	console.log(email);
-	if (email === undefined)  // da dang nhap, chuyen qua home
+	var email=localStorage.getItem("email");
+	
+	if (email === undefined||email===null)  
 		redirect("/login"); 
 	  
  }
   handleClick(e) {
-	// thu hien logout va chuyen qua trang login  
-	// xoa cookies
-	Cookies.remove('email');
-	//var email=Cookies.get('email');	
-	//alert(email);
+	
+	localStorage.removeItem("email");
+
     redirect("/login");   
 	  
   }
   render() {
   
    return (
-   <button style={{width: 200, height: 30}} onClick={this.handleClick.bind(this)} value="Click me"/>
+   <button style={{width: 200, height: 30}} onClick={this.handleClick.bind(this)} value="Logout"/>
    
    )
   }

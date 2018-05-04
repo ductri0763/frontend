@@ -1,21 +1,19 @@
 import { Component } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
-//import fetcho from 'isomorphic-unfetch'
 import fetch from 'node-fetch'
 import redirect from "./redirect";
-import Cookies from 'js-cookie';
-//import { setCookie, getCookie, removeCookie } from "./session";
-
+import validator from 'validator';
 
 export default class Login extends Component {
   constructor(props) {
     super(props);
+	this.handleSubmit = this.handleSubmit.bind(this);
     this.state = {
-      error: null
+       email: '',
+	   password: '',
     };
   }
-  // if da login thi chuyen sang home
   
    static getInitialProps(ctx) {
 		
@@ -26,9 +24,8 @@ export default class Login extends Component {
   }
  
  componentDidMount(){
-	var email=Cookies.get('email');	
-	console.log(email);
-	if (email === undefined)  // da dang nhap, chuyen qua home		
+	var email=localStorage.getItem("email");
+	if (email === undefined||email===null)  
 		{
 		}
 	else
@@ -36,6 +33,12 @@ export default class Login extends Component {
 	  
  }
 
+	handleEmailChange=(e) =>{
+	   this.setState({email: e.target.value});
+	}
+	handlePasswordChange=(e)=> {
+	   this.setState({password: e.target.value});
+	}
   
   render() {
     const authenticated=false;
@@ -46,8 +49,8 @@ export default class Login extends Component {
 		<Header pathname={pathname} authenticated={authenticated}/>
         <form onSubmit={this.handleSubmit}>
           <h1>Login</h1>
-          <input type="email" placeholder="email" name="email" />
-          <input type="password" placeholder="password" name="password" />
+          <input type="email" placeholder="email" name="email" onChange={this.handleEmailChange} />
+          <input type="password" placeholder="password" name="password" onChange={this.handlePasswordChange}/>
           <button type="submit">Submit</button>
         </form>
 	
@@ -58,13 +61,22 @@ export default class Login extends Component {
 
   handleSubmit = async e => {
     e.preventDefault();
-	
-	
-		const email = e.target.elements.email.value;
-		const password = e.target.elements.password.value;	
-		
+			
+		const email = this.state.email;
+		const password = this.state.password;
+				
+		if (validator.isEmpty(email))
+		{
+			alert('email is empty');
+			return;
+		}
+		if (!validator.isEmail(email))
+		{
+			alert('not is a email');
+			return;
+		}
 		var url= "http://localhost:5000/api/users/" + email + "/" + password;	
-	
+		
 		fetch(url, { 	 
 		  headers: { 'Content-Type': 'application/json' },
 		}).then(response => {
@@ -73,15 +85,14 @@ export default class Login extends Component {
 			  
 			  if (data.length>0) 
 			  {
-				   var myJSON =JSON.stringify(data); //JavaScript object into a string with JSON.stringify()
+				   var myJSON =JSON.stringify(data); 
 			
 				   var obj = JSON.parse(myJSON);			   
 			
 				   var email=obj[0].email;
-				   Cookies.set('email', email);
-				   var email=Cookies.get('email');			   
-		
-				   // chuyen qua trang home
+				   
+				   localStorage.setItem("email", email);
+				 
 				   redirect("/home");  
 			  }
 			  else

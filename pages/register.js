@@ -1,17 +1,20 @@
 import { Component } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
-import fetcho from 'isomorphic-unfetch'
 import redirect from "./redirect";
 import fetch from 'node-fetch'
-import Cookies from 'js-cookie';
+import validator from 'validator';
+
 
 
 export default class Register extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      error: null
+		 email: '',
+		 password: '',
+		 password_confirmation: ''
+      
     };
   }
 
@@ -35,12 +38,12 @@ export default class Register extends Component {
 	    <Header pathname={pathname} authenticated={authenticated}/> 
         <form onSubmit={this.handleSubmit}>
           <h1>Register</h1>
-          <input type="email" placeholder="email" name="email" />
-          <input type="password" placeholder="password" name="password" />
+          <input type="email" placeholder="email" name="email" onChange={this.handleEmailChange}/>
+          <input type="password" placeholder="password" name="password" onChange={this.handlePasswordChange} />
           <input
             type="password"
             placeholder="confirm password"
-            name="password_confirmation"
+            name="password_confirmation" onChange={this.handleEmailConfirmChange}
           />
           
           <button type="submit">Submit</button>
@@ -50,28 +53,47 @@ export default class Register extends Component {
     );
   }
 
+  handleEmailChange=(e) =>{
+	   this.setState({email: e.target.value});
+	}
+  handlePasswordChange=(e)=> {
+	   this.setState({password: e.target.value});
+	}
+  handleEmailConfirmChange=(e)=> {
+	   this.setState({password_confirmation: e.target.value});
+	}
   handleSubmit = async e => {
     e.preventDefault();
 
     
-    const email = e.target.elements.email.value;
-    const password = e.target.elements.password.value;
-    const password_confirmation = e.target.elements.password_confirmation.value;
+    const email = this.state.email;;
+    const password = this.state.password;	
+    const password_confirmation = this.state.password_confirmation;
+	
+	if (validator.isEmpty(email))
+	{
+		alert('email is empty');
+		return;
+	}
+	
+	if (!validator.isEmail(email))
+	{
+		alert('not is a email');
+		return;
+	}
 
-
-    if(password.value=='' || (password.length<5||password.length>32))
-    {
-          alert('Pass length from 5 to 32');
-		  return;
-    }
-
-	if (password!=password_confirmation)
-	{	
+	if (!validator.isLength(password,{min:5, max: 32}))
+	{
+		 alert('Pass length from 5 to 32');
+		 return;
+	}
+	if (!validator.equals(password,password_confirmation))
+	{
 		alert("pass not same!");
 		return;
-	}	
-	
-   // thuc hien dang ky o day
+	}
+   	
+   
     var url= "http://localhost:5000/api/users";
 	var body = { email: email, password:password };
     fetch(url, { 
@@ -82,13 +104,12 @@ export default class Register extends Component {
 		  return response.json().then(data => {
 		   if (response.ok) {
 			  
-			   var myJSON =JSON.stringify(data); //JavaScript object into a string with JSON.stringify()
+			   var myJSON =JSON.stringify(data); 
 			  
 			   var obj = JSON.parse(myJSON);
 			   
-			   // luu lai cookie
-			   Cookies.set('email', email);
-			   // chuyen qua trang home
+			   localStorage.setItem("email", email);
+			  
 			   redirect("/home");  
 			 return data;
 		   } else {
@@ -97,7 +118,7 @@ export default class Register extends Component {
 		   }
 		  });
 		});
-   // neu thanh cong chuyen qua trang home
+   
 
     
   };
